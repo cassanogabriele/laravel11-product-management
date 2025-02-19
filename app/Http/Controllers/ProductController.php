@@ -167,6 +167,7 @@ class ProductController extends Controller
     // Nouvelle méthode : avec ajout d'images et de la catégorie
     public function addProduct(Request $request)
     {
+     
         // Validation des données d'entrée
         $validatedData = $request->validate([
             'libelle' => 'required|string|max:255',
@@ -174,6 +175,7 @@ class ProductController extends Controller
             'description' => 'required|string',
             'quantite' => 'required|integer',
             'prix' => 'required|numeric',
+            'poids' => 'required|numeric',
             'id_utilisateur' => 'required|integer|exists:users,id',
             'category_id' => 'required|integer|exists:categories,id',
             'defaultImage' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -195,6 +197,9 @@ class ProductController extends Controller
             return response()->json(['error' => 'Aucune image par défaut envoyée.'], 400);
         }
 
+        $poids = (float) $validatedData['poids'];
+
+
         // Création du produit sans l'image par défaut
         $product = Product::create([
             'libelle' => $validatedData['libelle'],
@@ -202,6 +207,7 @@ class ProductController extends Controller
             'description' => $validatedData['description'],
             'quantite' => $validatedData['quantite'],
             'prix' => $validatedData['prix'],
+            'poids' => $poids,
             'id_utilisateur' => $validatedData['id_utilisateur'],
             'category_id' => $validatedData['category_id'],
             'created_at' => Carbon::now(),

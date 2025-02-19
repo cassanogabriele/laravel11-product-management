@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\PanierController;
 
 
 /*
@@ -90,5 +91,16 @@ Route::get('wishlists/{userId}', [WishlistController::class, 'getUserWishlistsWi
 Route::post('/addProductToWhishlist', [WishlistController::class, 'addProduct']);
 // Supprimer un produit à la liste de souhait
 Route::delete('/removeProductFromWishlist/{wishlistId}/{productId}', [WishlistController::class, 'removeProduct']);
+
+// Panier 
+
+// Ajouter un produit au panier
+Route::post('/addProductToCart', [PanierController::class, 'addToCart']); 
+// Afficher le panier
+Route::get('/cart', [PanierController::class, 'showCart']); 
+// Supprimer un produit du panier
+Route::delete('/cart/{userId}/{productId}', [PanierController::class, 'removeFromCart']);
+// Mise à jour du panier, quand on modifie la quantité
+Route::put('updateCartItem', [PanierController::class, 'updateCartItem']);
 
 

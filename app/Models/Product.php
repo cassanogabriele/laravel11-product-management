@@ -16,6 +16,7 @@ class Product extends Model
         'description',
         'quantite',
         'prix',
+        'poids',
         'category_id',
         'defaultImage',
         'id_utilisateur', 
