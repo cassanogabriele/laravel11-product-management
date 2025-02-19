@@ -80,8 +80,8 @@ class PanierController extends Controller
             $frais = $tarif ? $tarif->tarif : 0;
     
             // Ajouter l'URL complète pour l'image par défaut du produit
-            if ($product->image_default) {
-                $product->image_default = url('storage/' . $product->image_default);
+            if ($product->defaultImage) {
+                $product->defaultImage = url('storage/' . $product->defaultImage);
             }
     
             // Préparer les données de l'article
@@ -90,7 +90,7 @@ class PanierController extends Controller
                 'libelle' => $product->libelle,
                 'quantite' => $cartItem->quantite,
                 'prix' => $cartItem->prix,
-                'image_default' => $product->image_default,
+                'defaultImage' => $product->defaultImage,
                 'vendeur' => [
                     'name' => $vendeur->name, // Nom du vendeur
                     'email' => $vendeur->email, // Email du vendeur, si nécessaire
