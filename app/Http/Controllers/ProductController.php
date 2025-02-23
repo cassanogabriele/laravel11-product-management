@@ -47,20 +47,22 @@ class ProductController extends Controller
 
     public function getProductByCategory($categoryId)
     {
-        // Récupérer les produits qui appartiennent à une catégorie spécifique
-        $products = Product::where('category_id', $categoryId)->get();
-
+        // Récupérer les produits qui appartiennent à une catégorie spécifique et leur utilisateur associé
+        $products = Product::with('user') // Charger la relation 'user' avec 'product'
+                           ->where('category_id', $categoryId)
+                           ->get();
+    
         // Ajouter l'URL complète pour l'image de chaque produit
         foreach ($products as $product) {
             if ($product->defaultImage) {
                 $product->defaultImage = url('storage/' . $product->defaultImage);
             }
         }
-
-        // Retourner les produits avec les images modifiées
+    
+        // Retourner les produits avec les informations de l'utilisateur
         return response()->json($products);
     }
-
+    
     // Pour la page d'accueil : afficher 3 articles de chaque catégorie 
     public function getLimitedProductsByCategory()
     {

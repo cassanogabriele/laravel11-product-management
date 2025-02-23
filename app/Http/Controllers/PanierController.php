@@ -64,6 +64,8 @@ class PanierController extends Controller
     
         // Regrouper les articles par vendeur
         $groupedCartItems = [];
+        // Compte le nombre d'articles
+        $uniqueProductCount = 0; 
     
         foreach ($cartItems as $cartItem) {
             // Récupérer le produit et ses informations
@@ -107,6 +109,10 @@ class PanierController extends Controller
                     'items' => []
                 ];
             }
+
+            if (!isset($groupedCartItems[$product->id])) {             
+                $uniqueProductCount++; 
+            }
     
             // Ajouter l'article à la liste des articles du vendeur
             $groupedCartItems[$vendeur->id]['items'][] = $itemData;
@@ -124,6 +130,7 @@ class PanierController extends Controller
         return response()->json([
             'cartItems' => $groupedCartItems,
             'total' => $total,
+            'uniqueProductCount' => $uniqueProductCount, 
         ]);
     }    
     
