@@ -39,4 +39,9 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function paniers()
+    {
+        return $this->hasMany(Panier::class, 'product_id');
+    }
 }

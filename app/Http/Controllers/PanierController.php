@@ -68,6 +68,93 @@ class PanierController extends Controller
         $uniqueProductCount = 0; 
     
         foreach ($cartItems as $cartItem) {
+            $product = $cartItem->product;
+            $vendeur = $product->user; 
+            $poids = $product->poids;
+
+            // Vérification des frais de livraison en fonction du poids du produit
+            $tarif = Tarif::where('poids_min', '<=', $poids)
+                          ->where('poids_max', '>=', $poids)
+                          ->first();
+        
+            // Si un tarif est trouvé, on récupère son tarif, sinon, on met à zéro ou un autre tarif par défaut
+            $frais = $tarif ? $tarif->tarif : 0;
+    
+            // Ajouter l'URL complète pour l'image par défaut du produit
+            if ($product->defaultImage) {
+                $product->defaultImage = url('storage/' . $product->defaultImage);
+            }
+    
+            // Préparer les données de l'article
+            $itemData = [
+                'product_id' => $product->id,
+                'libelle' => $product->libelle,
+                'quantite' => $cartItem->quantite,
+                'prix' => $cartItem->prix,
+                'defaultImage' => $product->defaultImage,
+                'vendeur' => [
+                    'name' => $vendeur->name, // Nom du vendeur
+                    'email' => $vendeur->email, // Email du vendeur, si nécessaire
+                ],
+                'poids' => $poids,
+                'frais_livraison' => $frais,
+                'total_article' => $cartItem->quantite * $cartItem->prix + $frais, // Total avec frais de livraison
+            ];
+    
+            // Regrouper par vendeur (en utilisant l'ID du vendeur comme clé)
+            if (!isset($groupedCartItems[$vendeur->id])) {
+                $groupedCartItems[$vendeur->id] = [
+                    'vendeur' => $vendeur, 
+                    'items' => []
+                ];
+            }
+
+            $uniqueProductCount = count($cartItems);
+    
+            // Ajouter l'article à la liste des articles du vendeur
+            $groupedCartItems[$vendeur->id]['items'][] = $itemData;
+        }
+    
+        // Calculer le total du panier (y compris les frais de livraison)
+        $total = 0;
+        
+        foreach ($groupedCartItems as $vendorGroup) {
+            foreach ($vendorGroup['items'] as $item) {
+                $total += $item['total_article'];
+            }
+        }
+    
+        // Retourner les données groupées par vendeur et le total du panier
+        return response()->json([
+            'cartItems' => $groupedCartItems,
+            'total' => $total,
+            'uniqueProductCount' => $uniqueProductCount, 
+        ]);
+    }    
+
+    public function showCartPreview(Request $request)
+    {
+        // Récupérer l'ID de l'utilisateur envoyé par Angular
+        $userId = $request->userId;
+    
+        // Vérifier que l'ID utilisateur est bien présent
+        if (!$userId) {
+            return response()->json(['error' => 'Utilisateur non spécifié'], 400);
+        }
+    
+        // Récupérer les articles du panier pour cet utilisateur
+        $cartItems = Panier::with('product.user') // Charge la relation 'user' avec 'product' via 'id_utilisateur'
+                            ->where('user_id', $userId) // Utilisation de l'ID utilisateur fourni
+                            ->get();
+    
+        $cartData = [];
+    
+        // Regrouper les articles par vendeur
+        $groupedCartItems = [];
+        // Compte le nombre d'articles
+        $uniqueProductCount = 0; 
+    
+        foreach ($cartItems as $cartItem) {
             // Récupérer le produit et ses informations
             $product = $cartItem->product;
             $vendeur = $product->user; // Récupérer l'utilisateur (vendeur) associé au produit via 'id_utilisateur'
@@ -133,7 +220,7 @@ class PanierController extends Controller
             'uniqueProductCount' => $uniqueProductCount, 
         ]);
     }    
-    
+
     // Supprimer un produit du panier
     public function removeFromCart(Request $request, $userId, $productId)
     {

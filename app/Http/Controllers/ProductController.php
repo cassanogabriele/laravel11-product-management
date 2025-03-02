@@ -80,7 +80,7 @@ class ProductController extends Controller
         // Ajouter le chemin complet de l'image pour chaque produit
         foreach ($categories as $category) {
             if ($category->defaultImage) {
-                $category->defaultImage = url('stoaprage/' . $category->defaultImage);
+                $category->defaultImage = url('storage/' . $category->defaultImage);
             }
         }
     

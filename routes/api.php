@@ -103,4 +103,9 @@ Route::delete('/cart/{userId}/{productId}', [PanierController::class, 'removeFro
 // Mise à jour du panier, quand on modifie la quantité
 Route::put('updateCartItem', [PanierController::class, 'updateCartItem']);
 
+// Aperçu du panier 
+Route::get('/cart-preview', [PanierController::class, 'showCartPreview']);
+Route::get('/cart-total', [PanierController::class, 'getCartTotalItems']);
+
+
 
