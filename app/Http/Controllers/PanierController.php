@@ -136,30 +136,31 @@ class PanierController extends Controller
     {
         // Récupérer l'ID de l'utilisateur envoyé par Angular
         $userId = $request->userId;
-    
+        
         // Vérifier que l'ID utilisateur est bien présent
         if (!$userId) {
             return response()->json(['error' => 'Utilisateur non spécifié'], 400);
         }
-    
+        
         // Récupérer les articles du panier pour cet utilisateur
-        $cartItems = Panier::with('product.user') // Charge la relation 'user' avec 'product' via 'id_utilisateur'
-                            ->where('user_id', $userId) // Utilisation de l'ID utilisateur fourni
+        $cartItems = Panier::with('product.user') 
+                            ->where('user_id', $userId) 
                             ->get();
-    
+        
         $cartData = [];
-    
+        
         // Regrouper les articles par vendeur
         $groupedCartItems = [];
         // Compte le nombre d'articles
         $uniqueProductCount = 0; 
-    
+        $total = 0;  
+        
         foreach ($cartItems as $cartItem) {
             // Récupérer le produit et ses informations
             $product = $cartItem->product;
             $vendeur = $product->user; // Récupérer l'utilisateur (vendeur) associé au produit via 'id_utilisateur'
             $poids = $product->poids;
-
+    
             // Vérification des frais de livraison en fonction du poids du produit
             $tarif = Tarif::where('poids_min', '<=', $poids)
                           ->where('poids_max', '>=', $poids)
@@ -172,7 +173,7 @@ class PanierController extends Controller
             if ($product->defaultImage) {
                 $product->defaultImage = url('storage/' . $product->defaultImage);
             }
-    
+        
             // Préparer les données de l'article
             $itemData = [
                 'product_id' => $product->id,
@@ -181,45 +182,53 @@ class PanierController extends Controller
                 'prix' => $cartItem->prix,
                 'defaultImage' => $product->defaultImage,
                 'vendeur' => [
-                    'name' => $vendeur->name, // Nom du vendeur
-                    'email' => $vendeur->email, // Email du vendeur, si nécessaire
+                    'name' => $vendeur->name,
+                    'email' => $vendeur->email,
                 ],
                 'poids' => $poids,
                 'frais_livraison' => $frais,
-                'total_article' => $cartItem->quantite * $cartItem->prix + $frais, // Total avec frais de livraison
+                'total_article' => $cartItem->quantite * $cartItem->prix + $frais, 
             ];
     
-            // Regrouper par vendeur (en utilisant l'ID du vendeur comme clé)
+      
             if (!isset($groupedCartItems[$vendeur->id])) {
                 $groupedCartItems[$vendeur->id] = [
                     'vendeur' => $vendeur, 
                     'items' => []
                 ];
             }
-
+    
             if (!isset($groupedCartItems[$product->id])) {             
                 $uniqueProductCount++; 
             }
     
             // Ajouter l'article à la liste des articles du vendeur
             $groupedCartItems[$vendeur->id]['items'][] = $itemData;
+            $total += $itemData['total_article'];
         }
+        
+        // Limiter à 3 articles au total
+        $limitedGroupedCartItems = [];     
     
-        // Calculer le total du panier (y compris les frais de livraison)
-        $total = 0;
         foreach ($groupedCartItems as $vendorGroup) {
-            foreach ($vendorGroup['items'] as $item) {
-                $total += $item['total_article'];
-            }
-        }
+            // Limiter les articles par vendeur à 3
+            $limitedItems = array_slice($vendorGroup['items'], 0, 3); // Limiter à 3 articles par vendeur
     
-        // Retourner les données groupées par vendeur et le total du panier
+            // Ajouter les articles limités à la nouvelle structure
+            $limitedGroupedCartItems[$vendorGroup['vendeur']->id] = [
+                'vendeur' => $vendorGroup['vendeur'],
+                'items' => $limitedItems
+            ];
+        }
+        
+        // Retourner les données groupées par vendeur et le total du panier limité
         return response()->json([
-            'cartItems' => $groupedCartItems,
-            'total' => $total,
+            'cartItems' => $limitedGroupedCartItems,  
+            'total' => $total,          
             'uniqueProductCount' => $uniqueProductCount, 
         ]);
-    }    
+    }
+    
 
     // Supprimer un produit du panier
     public function removeFromCart(Request $request, $userId, $productId)
