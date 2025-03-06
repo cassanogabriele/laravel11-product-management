@@ -11,6 +11,6 @@ class ProductImage extends Model
 
     protected $fillable = ['product_id', 'image_path'];
     
-    // Définir la table explicitement (facultatif si Laravel peut deviner le nom)
+    // Définir la table explicitement (si besoin)
     protected $table = 'product_images';
 }

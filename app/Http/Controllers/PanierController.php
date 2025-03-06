@@ -56,14 +56,15 @@ class PanierController extends Controller
         }
     
         // Récupérer les articles du panier pour cet utilisateur
-        $cartItems = Panier::with('product.user') // Charge la relation 'user' avec 'product' via 'id_utilisateur'
-                            ->where('user_id', $userId) // Utilisation de l'ID utilisateur fourni
+        $cartItems = Panier::with('product.user') 
+                            ->where('user_id', $userId) 
                             ->get();
     
         $cartData = [];
     
         // Regrouper les articles par vendeur
         $groupedCartItems = [];
+
         // Compte le nombre d'articles
         $uniqueProductCount = 0; 
     
@@ -93,15 +94,14 @@ class PanierController extends Controller
                 'prix' => $cartItem->prix,
                 'defaultImage' => $product->defaultImage,
                 'vendeur' => [
-                    'name' => $vendeur->name, // Nom du vendeur
-                    'email' => $vendeur->email, // Email du vendeur, si nécessaire
+                    'name' => $vendeur->name, 
+                    'email' => $vendeur->email, 
                 ],
                 'poids' => $poids,
                 'frais_livraison' => $frais,
-                'total_article' => $cartItem->quantite * $cartItem->prix + $frais, // Total avec frais de livraison
+                'total_article' => $cartItem->quantite * $cartItem->prix + $frais, 
             ];
-    
-            // Regrouper par vendeur (en utilisant l'ID du vendeur comme clé)
+            
             if (!isset($groupedCartItems[$vendeur->id])) {
                 $groupedCartItems[$vendeur->id] = [
                     'vendeur' => $vendeur, 
@@ -109,9 +109,8 @@ class PanierController extends Controller
                 ];
             }
 
-            $uniqueProductCount = count($cartItems);
-    
-            // Ajouter l'article à la liste des articles du vendeur
+            $uniqueProductCount = count($cartItems);    
+   
             $groupedCartItems[$vendeur->id]['items'][] = $itemData;
         }
     
@@ -134,47 +133,38 @@ class PanierController extends Controller
 
     public function showCartPreview(Request $request)
     {
-        // Récupérer l'ID de l'utilisateur envoyé par Angular
         $userId = $request->userId;
         
-        // Vérifier que l'ID utilisateur est bien présent
+      
         if (!$userId) {
             return response()->json(['error' => 'Utilisateur non spécifié'], 400);
         }
         
-        // Récupérer les articles du panier pour cet utilisateur
         $cartItems = Panier::with('product.user') 
                             ->where('user_id', $userId) 
                             ->get();
         
         $cartData = [];
         
-        // Regrouper les articles par vendeur
-        $groupedCartItems = [];
-        // Compte le nombre d'articles
+        $groupedCartItems = [];   
         $uniqueProductCount = 0; 
         $total = 0;  
         
-        foreach ($cartItems as $cartItem) {
-            // Récupérer le produit et ses informations
+        foreach ($cartItems as $cartItem) {      
             $product = $cartItem->product;
-            $vendeur = $product->user; // Récupérer l'utilisateur (vendeur) associé au produit via 'id_utilisateur'
+            $vendeur = $product->user;
             $poids = $product->poids;
     
-            // Vérification des frais de livraison en fonction du poids du produit
             $tarif = Tarif::where('poids_min', '<=', $poids)
                           ->where('poids_max', '>=', $poids)
                           ->first();
-        
-            // Si un tarif est trouvé, on récupère son tarif, sinon, on met à zéro ou un autre tarif par défaut
+              
             $frais = $tarif ? $tarif->tarif : 0;
     
-            // Ajouter l'URL complète pour l'image par défaut du produit
             if ($product->defaultImage) {
                 $product->defaultImage = url('storage/' . $product->defaultImage);
             }
         
-            // Préparer les données de l'article
             $itemData = [
                 'product_id' => $product->id,
                 'libelle' => $product->libelle,
@@ -202,7 +192,6 @@ class PanierController extends Controller
                 $uniqueProductCount++; 
             }
     
-            // Ajouter l'article à la liste des articles du vendeur
             $groupedCartItems[$vendeur->id]['items'][] = $itemData;
             $total += $itemData['total_article'];
         }
@@ -229,14 +218,11 @@ class PanierController extends Controller
         ]);
     }
     
-
     // Supprimer un produit du panier
     public function removeFromCart(Request $request, $userId, $productId)
     {
-        // Supprimer le produit du panier de l'utilisateur
         $deleted = Panier::where('user_id', $userId)->where('product_id', $productId)->delete();
     
-        // Vérifier si l'article a bien été supprimé
         if ($deleted) {
             return response()->json(['message' => 'Produit supprimé du panier']);
         } else {
