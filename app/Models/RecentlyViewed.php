@@ -16,7 +16,7 @@ class RecentlyViewed extends Model
     // Définir la relation entre RecentlyViewed et Product
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id'); // La clé étrangère est 'product_id'
+        return $this->belongsTo(Product::class, 'product_id'); 
     }
 
     // Récupère les produits récemment vus par l'utilisateur
