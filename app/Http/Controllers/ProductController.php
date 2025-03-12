@@ -150,6 +150,29 @@ class ProductController extends Controller
     
         return response()->json($recentProducts);
     }
+
+    // Supprimer l'image dun produit  
+    public function deleteImageProduct(Request $request, $idImage)
+    {
+        // Récupérer l'image du produit
+        $productImage = ProductImage::find($idImage);
+
+        // Vérifier s'il existe
+        if (is_null($productImage)) {
+            return response()->json(['message' => 'Image du produit introuvable'], 404);
+        }
+
+        // Supprimer l'image dans le dossier
+        if (file_exists(public_path('uploads/images/' .  $productImage->filename))) {
+            unlink(public_path('uploads/images/' .  $productImage->filename));
+        }
+
+        // Supprimer l'image dans la table 'product_images'
+        $productImage->delete();
+
+        // Retourner une réponse de succès
+        return response(null, 204); 
+    }
     
     // Ajouter un produit
     public function addProduct(Request $request)
@@ -214,30 +237,50 @@ class ProductController extends Controller
         return response()->json(['message' => 'Produit créé avec succès!', 'product' => $product], 201);
     }
 
-    // Mettre à jour un produit    
     public function updateProduct(Request $request, $id)
     {
         $product = Product::find($id);
-
-        if(is_null($product))
-        {
-            return response()->json(['message' => 'Produit introuvable', 404]);
-        } 
-
+    
+        if (is_null($product)) {
+            return response()->json(['message' => 'Produit introuvable'], 404);
+        }
+    
+        // Validation des données
         $validatedData = $request->validate([
             'libelle' => 'required|string|max:255',
             'reference' => 'required|string|max:255',
             'description' => 'required|string',
             'quantite' => 'required|integer',
             'prix' => 'required|numeric',
-            'updated_at' => now(), 
         ]);
-        
+    
+        // Modification de l'image par défaut
+        if ($request->hasFile('defaultImage')) {
+            // Sauvegarde du chemin relatif dans la base de données
+            $defaultImagePath = $request->file('defaultImage')->store('products', 'public');
+            // Ajouter l'image par défaut au tableau des données validées
+            $validatedData['defaultImage'] = $defaultImagePath;
+        } else {
+            return response()->json(['error' => 'Aucune image par défaut envoyée.'], 400);
+        }
+    
+        // Mise à jour des autres données du produit
+        $product->update($validatedData);
+    
+        // Ajouter les nouvelles images (autres images)
+        if ($request->hasFile('otherImages')) {
+            foreach ($request->file('otherImages') as $image) {
+                $imagePath = $image->store('products', 'public');
+                ProductImage::create([
+                    'product_id' => $id,
+                    'image_path' => $imagePath,
+                ]);
+            }
+        }
+    
+        return response()->json($product, 200);
+    }    
 
-        $product->update($request->all());
-
-        return response($product, 200); 
-    }
 
     // Supprimer un produit
     public function deleteProduct(Request $request, $id)

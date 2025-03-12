@@ -75,7 +75,9 @@ Route::get('/products-by-category', [ProductController::class, 'getLimitedProduc
 // Ajouter un article 
 Route::post('addProduct', [ProductController::class, 'addProduct']);
 // Mettre à jour un article 
-Route::put('updateProduct/{id}', [ProductController::class, 'updateProduct']);
+Route::post('updateProduct/{id}', [ProductController::class, 'updateProduct']);
+// Supprimer une image d'un produit 
+Route::delete('deleteImageProduct/{id}', [ProductController::class, 'deleteImageProduct']);
 // Mettre à jour un article 
 Route::delete('deleteProduct/{id}', [ProductController::class, 'deleteProduct']);
 
