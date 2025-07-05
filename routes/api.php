@@ -10,6 +10,7 @@ use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\PanierController;
 
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes

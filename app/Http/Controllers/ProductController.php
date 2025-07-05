@@ -281,7 +281,6 @@ class ProductController extends Controller
         return response()->json($product, 200);
     }    
 
-
     // Supprimer un produit
     public function deleteProduct(Request $request, $id)
     {

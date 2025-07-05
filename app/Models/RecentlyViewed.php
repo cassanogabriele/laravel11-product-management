@@ -18,14 +18,4 @@ class RecentlyViewed extends Model
     {
         return $this->belongsTo(Product::class, 'product_id'); 
     }
-
-    // Récupère les produits récemment vus par l'utilisateur
-    public static function getRecentlyViewed($userId)
-    {
-        return self::where('user_id', $userId)
-                    ->latest()
-                    ->take(5) // Récupère les 5 derniers articles vus
-                    ->with('product') // Charge les informations des produits
-                    ->get();
-    }
 }
