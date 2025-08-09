@@ -79,7 +79,7 @@ Route::post('addProduct', [ProductController::class, 'addProduct']);
 Route::post('updateProduct/{id}', [ProductController::class, 'updateProduct']);
 // Supprimer une image d'un produit 
 Route::delete('deleteImageProduct/{id}', [ProductController::class, 'deleteImageProduct']);
-// Mettre à jour un article 
+// Supprimer un article
 Route::delete('deleteProduct/{id}', [ProductController::class, 'deleteProduct']);
 
 // Liste de souhait  

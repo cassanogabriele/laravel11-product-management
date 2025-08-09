@@ -241,7 +241,7 @@ class PanierController extends Controller
         $panierItem = Panier::where('user_id', $request->user_id)
                             ->where('product_id', $request->product_id)
                             ->first();
-
+        
         if ($panierItem) {
             $panierItem->quantite = $request->quantite;
             $panierItem->save();
